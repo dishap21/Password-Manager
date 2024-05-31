@@ -1,0 +1,50 @@
+
+UserImpl {providerId: 'firebase', proactiveRefresh: ProactiveRefresh, reloadUserInfo: {…}, reloadListener: null, uid: 'RJcGQR1JEXX02EQaEZ3Ix8y976s2', …}
+accessToken
+: 
+"eyJhbGciOiJSUzI1NiIsImtpZCI6IjNjOTNjMWEyNGNhZjgyN2I4ZGRlOWY4MmQyMzE1MzY1MDg4YWU2MTIiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiRGlzaGEgUG9vamFyeSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NKYmVKUTJpZElRbTdIdkFINWVPVEhhdFJXYk55Vzl1WWNmZThhc3NIanZBZFpaZTFjPXM5Ni1jIiwiaXNzIjoiaHR0cHM6Ly9zZWN1cmV0b2tlbi5nb29nbGUuY29tL3Bhc3NndWFyZC0zZTAzNCIsImF1ZCI6InBhc3NndWFyZC0zZTAzNCIsImF1dGhfdGltZSI6MTcxNjgwNzk4OSwidXNlcl9pZCI6IlJKY0dRUjFKRVhYMDJFUWFFWjNJeDh5OTc2czIiLCJzdWIiOiJSSmNHUVIxSkVYWDAyRVFhRVozSXg4eTk3NnMyIiwiaWF0IjoxNzE2ODA3OTg5LCJleHAiOjE3MTY4MTE1ODksImVtYWlsIjoiZGlzaGFwb29qYXJ5NjdAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZ29vZ2xlLmNvbSI6WyIxMDM1MjI3NTcwOTc0NjQ3NTg0MTQiXSwiZW1haWwiOlsiZGlzaGFwb29qYXJ5NjdAZ21haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoiZ29vZ2xlLmNvbSJ9fQ.izWijZl-Ln7WnGLrBWNFlJHs0QxCah1dcTK15qsymWbU878T3ebEcEpJPVaThlhFO74v7cMC4aLjEb3M47OvM_up2BrLVEhHmDfoaBIYlSzqlhWhmiWwNc_dsCK5UAKTOTh3_xGp5MxakZVB8JigbeEwP0booZukukCtUJOhZb5AfHSMcEm-46az70Mdf60O45H2AYoyWbxYsSk-V2_FF8bxCFA6QnmWRCSk9-s1jDDfaKrUXvZMHvomKko92bDo9vsNR3_HYRt-EKv6LZ2Oxb4yJY3yAOmYyonNxyUXjF9-P3trKC3xo-grivLyTgEYAVjr3KzsEtNSWndqUHW0Gg"
+auth
+: 
+AuthImpl {app: FirebaseAppImpl, heartbeatServiceProvider: Provider, appCheckServiceProvider: Provider, config: {…}, currentUser: UserImpl, …}
+displayName: "Disha Poojary"
+email: "dishapoojary67@gmail.com"
+emailVerified: true
+isAnonymous: false
+metadata: 
+UserMetadata {createdAt: '1716807328352', lastLoginAt: '1716807989231', lastSignInTime: 'Mon, 27 May 2024 11:06:29 GMT', creationTime: 'Mon, 27 May 2024 10:55:28 GMT'}
+phoneNumber
+: 
+null
+photoURL
+: 
+"https://lh3.googleusercontent.com/a/ACg8ocJbeJQ2idIQm7HvAH5eOTHatRWbNyW9uYcfe8assHjvAdZZe1c=s96-c"
+proactiveRefresh
+: 
+ProactiveRefresh {user: UserImpl, isRunning: false, timerId: null, errorBackoff: 30000}
+providerData
+: 
+[{…}]
+providerId
+: 
+"firebase"
+reloadListener
+: 
+null
+reloadUserInfo
+: 
+{localId: 'RJcGQR1JEXX02EQaEZ3Ix8y976s2', email: 'dishapoojary67@gmail.com', displayName: 'Disha Poojary', photoUrl: 'https://lh3.googleusercontent.com/a/ACg8ocJbeJQ2idIQm7HvAH5eOTHatRWbNyW9uYcfe8assHjvAdZZe1c=s96-c', emailVerified: true, …}
+stsTokenManager
+: 
+StsTokenManager {refreshToken: 'AMf-vBzTeZm9aD9LqXn3ckcWlEcN78LI_gZGvAq-tqmI5yrdCs…Y6Vhor6iCLXAZc-5aRoIZtNdiizWRJPdt1_4srgFd2pTaEkuj', accessToken: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjNjOTNjMWEyNGNhZjgyN2…yUXjF9-P3trKC3xo-grivLyTgEYAVjr3KzsEtNSWndqUHW0Gg', expirationTime: 1716811385970}
+tenantId
+: 
+null
+uid
+: 
+"RJcGQR1JEXX02EQaEZ3Ix8y976s2"
+refreshToken
+: 
+(...)
+[[Prototype]]
+: 
+Object
