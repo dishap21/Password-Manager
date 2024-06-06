@@ -1,22 +1,26 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { faHome, faPlus, faEye } from "@fortawesome/free-solid-svg-icons";
 import Comp1 from "./Comp1";
 import Comp2 from "./Comp2";
 import OverlayForm from "@/components/OverlayForm";
-import { password } from "@/utils/passwrodsDemo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { UserAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import PassDrawer from "@/components/PassDrawer";
 import Dialog from "@/components/Dialog";
 
+const sjcl = require('sjcl');
 export default function dashboard() {
-
+  
   // User authentication
-  const { user, logout } = UserAuth();
+  const { firebaseUser, user, logout, loading } = UserAuth();
+  
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
   const handleSignOut = async () => {
     try {
       await logout();
@@ -68,9 +72,18 @@ export default function dashboard() {
     }
   }, [user, router]);
 
+
+  //show password
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  
+
   // User info
-  const userPhotoURL = user?.photoURL || "/images/demo-user.png";
-  const userUserName = user?.displayName || "user";
+  const userPhotoURL = firebaseUser?.photoURL || "/images/demo-user.png";
+  const userUserName = firebaseUser?.displayName || "user";
 
   return (
     <div className="container mx-auto">
@@ -154,7 +167,12 @@ export default function dashboard() {
         <Comp2 />
       </div>
       <div className="pb-10">
-        <p className="font-bold m-2 mt-4 text-pretty text-xl">All Passwords.</p>
+        <p className="font-bold m-2 mt-4 text-pretty text-2xl">All Passwords.</p>
+        {user.passwords != null && user.passwords.length === 0 ? (
+          <div>
+            <p className="pl-2 text-lg">You have no saved passwords.</p>
+          </div>
+        ) : (
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
           <table className="w-full m-3 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-60000">
             <thead className="text-xs text-gray-700 uppercase bg-gray-150 dark:bg-gray-300 dark:text-gray-700">
@@ -174,7 +192,7 @@ export default function dashboard() {
               </tr>
             </thead>
             <tbody>
-              {password.map((value, index) => (
+            {user.passwords.map((value, index) => (
                 <tr
                   key={index}
                   className="bg-white border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-200"
@@ -187,8 +205,15 @@ export default function dashboard() {
                   </th>
                   <td className="px-6 py-4">{value.username}</td>
                   <td className="px-6 py-4 flex gap-2">
-                    {value.password}
-                    <FontAwesomeIcon icon={faEye} className="h-4 w-4 pt-0.5" />
+                    {showPassword ? (
+                      // <span>{decryptPassword(value.password, secretKey)}</span>
+                      <span>{value.password}</span>
+                    ) : (
+                      <input type="password" value={value.password} readOnly />
+                    )}
+                    <button onClick={togglePasswordVisibility}>
+                      <FontAwesomeIcon icon={faEye} />
+                    </button>
                   </td>
                   <td className="px-3 py-4 space-x-2 text-right lg:px-6 lg:space-x-4">
                     <button
@@ -209,6 +234,7 @@ export default function dashboard() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

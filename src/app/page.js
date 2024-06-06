@@ -3,7 +3,7 @@ import { description } from "@/utils/desc";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Image from "next/image";
-import { UserAuth } from "./context/AuthContext";
+import { UserAuth } from "@/app/context/AuthContext";
 
 export default function Home() {
 
@@ -12,9 +12,10 @@ export default function Home() {
   
 
   const handleSignIn = async () => {
-    try{
-      await googleSignIn()
-    }catch(err){
+
+    try {
+      await googleSignIn();
+    } catch (err) {
       console.log(err);
     }
   };

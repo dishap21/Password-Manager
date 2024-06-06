@@ -6,6 +6,6 @@ export const comps = {
 
 export const comps2 = {
     val: '2',
-    text: 'Expired Passwords',
-    desc: 'We recommend you to change password every 6 months.'
+    text: 'Weak Passwords',
+    desc: 'We recommend you to change password which are weak by our algorithms.'
 }
