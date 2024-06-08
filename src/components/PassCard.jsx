@@ -2,6 +2,7 @@ import { UserAuth } from '@/app/context/AuthContext';
 import axios from 'axios';
 import { NextResponse } from 'next/server';
 import React, { useState } from 'react';
+import Toast from './Toast';
 
 export default function PassCard() {
   const {user} = UserAuth();
@@ -9,15 +10,25 @@ export default function PassCard() {
   const [website, setWebsite] = useState('');
   const [uName, setUName] = useState('');
   const [password, setPassword] = useState('');
-  const [showForm, setShowForm] = useState(true);
+  const [showToast, setShowToast] = useState(false);
+
+  const handleShowToast = () => {
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 4000);
+  };
 
   const savePassword = async (e) => {
     //e.preventDefault();
     try{
       const response = axios.post('api/savePassword', {uid, website, uName, password});
       if((await response).status==200){
+        handleShowToast();
         console.log("Successfull");
-        setShowForm(false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 4000);
       }
       return NextResponse.json({message: "Password saved successfully."}, {status: 200})
     }catch(error){
@@ -26,12 +37,16 @@ export default function PassCard() {
     }
   };
 
-  if (!showForm) {
-    return null; // Don't render the form if showForm is false
-  }
 
   return (
     <form className="space-y-6" action={ savePassword }>
+      {showToast && (
+          <Toast
+            message="Password saved successfully."
+            show={showToast}
+            onClose={() => setShowToast(false)}
+          />
+      )}
         <h5 className="text-xl font-medium text-black">Add Password</h5>
         <div>
             <label for="website" className="w-full block mb-2 text-sm font-medium text-black">Website Link</label>

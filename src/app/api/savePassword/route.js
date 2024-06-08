@@ -6,7 +6,7 @@ const sjcl = require('sjcl');
 function encryptPassword(password, secretKey) {
     const encrypted = sjcl.encrypt(secretKey, password);
     return encrypted;
-  }
+}
 
 export async function POST(request) {
     try{
