@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { faHome, faPlus, faEye } from "@fortawesome/free-solid-svg-icons";
+import { faHome, faPlus, faEye, faPen, faClipboard } from "@fortawesome/free-solid-svg-icons";
 import Comp1 from "./Comp1";
 import Comp2 from "./Comp2";
 import OverlayForm from "@/components/OverlayForm";
@@ -8,19 +8,25 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { UserAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import PassDrawer from "@/components/PassDrawer";
 import Dialog from "@/components/Dialog";
+import Spinner from "@/components/Spinner";
+import Toast from "@/components/Toast";
+import axios from "axios";
 
-const sjcl = require('sjcl');
 export default function dashboard() {
   
   // User authentication
   const { firebaseUser, user, logout, loading } = UserAuth();
   
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <div className="mx-auto my-auto h-screen flex items-center justify-center">
+        <Spinner/>
+      </div>
+    );
   }
 
+  // Sign out
   const handleSignOut = async () => {
     try {
       await logout();
@@ -28,6 +34,34 @@ export default function dashboard() {
     } catch (err) {
       console.log(err);
     }
+  };
+
+  // Delete Password
+  const [currentWebsite, setCurrentWebsite] = useState(null);
+  const uid = user._id;
+  const deletePassword = async () => {
+    try{
+      const response = await axios.post('api/delete/password', {uid, website: currentWebsite});
+      if(response.status === 200){
+        handleShowToast('Password Deleted');
+        setDialogOpen(false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 5000);
+      }else{
+        handleShowToast('Not Able to delete password.');
+      }
+    }catch(err){
+      console.log('Password not deleted.', err);
+    }
+  };
+
+  const [showToast, setShowToast] = useState({ isVisible: false, message: ''});
+  const handleShowToast = (message) => {
+    setShowToast({isVisible: true, message});
+    setTimeout(() => {
+      setShowToast({isVisible: false, message: ''});
+    }, 5000);
   };
 
   // Drop down avatar
@@ -45,23 +79,15 @@ export default function dashboard() {
     setFormVisible(false);
   };
 
-  //Existing Password drawer
-  const [isDrawerVisible, setDrawerVisible] = useState(false);
-  const toggleDrawer = () => {
-    setDrawerVisible(!isDrawerVisible);
-  };
-
   //Existing Popup model
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const openDialog = () => {
+  const openDialog = (website) => {
+    setCurrentWebsite(website);
     setDialogOpen(true);
   };
   const closeDialog = () => {
+    setCurrentWebsite(null);
     setDialogOpen(false);
-  };
-  const handleConfirm = () => {
-    console.log("Confirmed");
-    closeDialog();
   };
 
   // User redirection
@@ -72,14 +98,96 @@ export default function dashboard() {
     }
   }, [user, router]);
 
-
   //show password
-  const [showPassword, setShowPassword] = useState(false);
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+  const [visiblePasswordIndex, setVisiblePasswordIndex] = useState(null);
+  const [decryptedPasswords, setDecryptedPasswords] = useState({});
+  const togglePasswordVisibility = async (index, password) => {
+    if (visiblePasswordIndex === index) {
+      setVisiblePasswordIndex(null);
+    } else {
+      setVisiblePasswordIndex(index);
+      if (!decryptedPasswords[index]) {
+        try {
+          const response = await axios.post('api/decrypt', { password });
+          setDecryptedPasswords((prev) => ({
+            ...prev,
+            [index]: response.data.decryptedPassword,
+          }));
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    }
   };
 
-  
+  // Copy username
+  const [copyIndex, setCopyIndex] = useState(null);
+  const copyText = (index, text) => {
+    if(copyIndex === index){
+      setCopyIndex(null);
+    }else{
+      setCopyIndex(index);
+      navigator.clipboard.writeText(text);
+    }
+  }
+
+  // Copy password
+  const [copyPassIndex, setCopyPassIndex] = useState(null);
+  const copyPass = async (index, text) => {
+    if(copyPassIndex === index){
+      setCopyPassIndex(null);
+    }else{
+      setCopyPassIndex(index);
+      try{
+        const response = await axios.post('api/decrypt', { password: text });
+        const decryptedPass = response.data.decryptedPassword;
+        navigator.clipboard.writeText(decryptedPass);
+      }catch(err){
+        console.log(err.message);
+      }
+    }
+  }
+
+  //Edit
+  const [editIndex, setEditIndex] = useState(null);
+  const [editField, setEditField] = useState(null);
+  const [tempValues, setTempValues] = useState({ username: "", password: "" });
+
+  // Edit password
+  const startEditing = (index, field) => {
+    setEditIndex(index);
+    setEditField(field);
+    setTempValues({
+      username: user.passwords[index].username,
+      password: sjcl.decrypt(secretKey, user.passwords[index].password)
+    });
+  };
+
+  const saveEdit = async (index) => {
+    const updatedPassword = {
+      ...user.passwords[index],
+      username: tempValues.username,
+      password: sjcl.encrypt(secretKey, tempValues.password)
+    };
+    // Make API call to save updated password
+    // await axios.put('api/editPassword', { id: user.passwords[index]._id, updatedPassword });
+
+    // Reset state
+    setEditIndex(null);
+    setEditField(null);
+    setTempValues({ username: "", password: "" });
+    window.location.reload();
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setTempValues(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
+
+  // Edit username
 
   // User info
   const userPhotoURL = firebaseUser?.photoURL || "/images/demo-user.png";
@@ -87,7 +195,7 @@ export default function dashboard() {
 
   return (
     <div className="container mx-auto">
-      <PassDrawer isVisible={isDrawerVisible} toggleDrawer={toggleDrawer} />
+      {showToast.isVisible && (<Toast message={showToast.message} show={showToast} onClose={() => setShowToast({isVisible: false, message: ''})}/>)}
       <Dialog 
         isOpen={isDialogOpen}
         onClose={closeDialog}
@@ -95,7 +203,7 @@ export default function dashboard() {
         message="Are you sure? This action cannot be undone."
         confirmText="Yes, I'm sure"
         cancelText="No, cancel"
-        onConfirm={handleConfirm} />
+        onConfirm={deletePassword} />
       <div className="flex gap-1 pt-1 m-2 md:pt-0">
         <FontAwesomeIcon
           icon={faHome}
@@ -203,27 +311,50 @@ export default function dashboard() {
                   >
                     {value.website}
                   </th>
-                  <td className="px-6 py-4">{value.username}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-between space-x-2">
+                      <span>{value.username}</span>
+                      <div className="flex justify-start space-x-2">
+                        <button>
+                          <FontAwesomeIcon icon={faPen} className="text-slate-900 h-4 w-4" />
+                        </button>
+                        <button>
+                          <FontAwesomeIcon icon={faClipboard} onClick={() => {copyText(index, value.username)}} className="text-slate-900 h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 flex gap-2">
-                    {showPassword ? (
-                      // <span>{decryptPassword(value.password, secretKey)}</span>
-                      <span>{value.password}</span>
+                    {editIndex === index && editField === 'password' ? (
+                        <input
+                          type="password"
+                          name="password"
+                          value={tempValues.password}
+                          onChange={handleChange}
+                          className="border rounded p-1"
+                        />
                     ) : (
-                      <input type="password" value={value.password} readOnly />
+                      <>
+                          {visiblePasswordIndex === index ? (
+                            decryptedPasswords[index]
+                          ) : (
+                            <input type="password" value={value.password} readOnly className="border rounded p-1" />
+                          )}
+                        </>
                     )}
-                    <button onClick={togglePasswordVisibility}>
-                      <FontAwesomeIcon icon={faEye} />
+                    <button onClick={() => togglePasswordVisibility(index, value.password)}>
+                      <FontAwesomeIcon icon={faEye} className="text-slate-900 h-4 w-4"/>
+                    </button>
+                    <button>
+                      <FontAwesomeIcon icon={faPen} className="text-slate-900 h-4 w-4" />
+                    </button>
+                    <button onClick={() => {copyPass(index, value.password)}}>
+                      <FontAwesomeIcon icon={faClipboard} className="text-slate-900 h-4 w-4" />
                     </button>
                   </td>
                   <td className="px-3 py-4 space-x-2 text-right lg:px-6 lg:space-x-4">
                     <button
-                      onClick={ toggleDrawer }
-                      className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={ openDialog }
+                      onClick={ () => openDialog(value.website) }
                       className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
                     >
                       Delete

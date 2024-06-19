@@ -7,5 +7,5 @@ export const comps = {
 export const comps2 = {
     val: '2',
     text: 'Weak Passwords',
-    desc: 'We recommend you to change password which are weak by our algorithms.'
+    desc: 'We recommend you to change password which are categorised weak by standards.'
 }
