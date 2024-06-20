@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { faHome, faPlus, faEye, faPen, faClipboard } from "@fortawesome/free-solid-svg-icons";
+import { faHome, faPlus, faEye, faPen, faClipboard, faSave, faTimes } from "@fortawesome/free-solid-svg-icons";
 import Comp1 from "./Comp1";
 import Comp2 from "./Comp2";
 import OverlayForm from "@/components/OverlayForm";
@@ -38,16 +38,16 @@ export default function dashboard() {
 
   // Delete Password
   const [currentWebsite, setCurrentWebsite] = useState(null);
-  const uid = user._id;
   const deletePassword = async () => {
     try{
+      const uid = user._id;
       const response = await axios.post('api/delete/password', {uid, website: currentWebsite});
       if(response.status === 200){
         handleShowToast('Password Deleted');
         setDialogOpen(false);
         setTimeout(() => {
           window.location.reload();
-        }, 5000);
+        }, 3000);
       }else{
         handleShowToast('Not Able to delete password.');
       }
@@ -61,7 +61,7 @@ export default function dashboard() {
     setShowToast({isVisible: true, message});
     setTimeout(() => {
       setShowToast({isVisible: false, message: ''});
-    }, 5000);
+    }, 3000);
   };
 
   // Drop down avatar
@@ -128,6 +128,7 @@ export default function dashboard() {
     }else{
       setCopyIndex(index);
       navigator.clipboard.writeText(text);
+      handleShowToast('Text copied to clipboard.');
     }
   }
 
@@ -142,7 +143,9 @@ export default function dashboard() {
         const response = await axios.post('api/decrypt', { password: text });
         const decryptedPass = response.data.decryptedPassword;
         navigator.clipboard.writeText(decryptedPass);
+        handleShowToast('Text copied to clipboard.');
       }catch(err){
+        handleShowToast('Could not copy. Try Again.')
         console.log(err.message);
       }
     }
@@ -153,30 +156,39 @@ export default function dashboard() {
   const [editField, setEditField] = useState(null);
   const [tempValues, setTempValues] = useState({ username: "", password: "" });
 
-  // Edit password
   const startEditing = (index, field) => {
     setEditIndex(index);
     setEditField(field);
     setTempValues({
       username: user.passwords[index].username,
-      password: sjcl.decrypt(secretKey, user.passwords[index].password)
+      password: ''
     });
   };
 
   const saveEdit = async (index) => {
-    const updatedPassword = {
-      ...user.passwords[index],
-      username: tempValues.username,
-      password: sjcl.encrypt(secretKey, tempValues.password)
-    };
-    // Make API call to save updated password
-    // await axios.put('api/editPassword', { id: user.passwords[index]._id, updatedPassword });
-
-    // Reset state
-    setEditIndex(null);
-    setEditField(null);
-    setTempValues({ username: "", password: "" });
-    window.location.reload();
+    const updatedValue = tempValues[editField];
+    const apiEndpoint = editField === "username" ? "api/edit/name" : "api/edit/password";
+    const uid = user._id;
+    try{
+      const response = await axios.put(apiEndpoint, {
+        uid: uid,
+        id: user.passwords[index]._id,
+        value: updatedValue,
+      });
+      if(response.status == 200){
+        handleShowToast('Edit Successful.')
+      }else{
+        handleShowToast('Not able to complete the operation.')
+      }
+      setEditIndex(null);
+      setEditField(null);
+      setTempValues({username: "", password: ""});
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    }catch(err){
+      console.log(err);
+    }
   };
 
   const handleChange = (e) => {
@@ -187,7 +199,27 @@ export default function dashboard() {
     }));
   };
 
-  // Edit username
+  // delete account
+  const deleteAccount = async () => {
+    if (!user) return;
+
+    const uid = user._id;
+    try {
+        const response = await axios.delete('/api/delete/account', {
+            data: { uid }
+        });
+        if (response.status == 200) {
+            alert('Account deleted successfully.');
+            await logout();
+            router.push("/");
+        } else {
+            handleShowToast('Not able to delete your account. Try again.');
+        }
+    } catch (err) {
+        console.log(err);
+        handleShowToast('An error occurred. Please try again.');
+    }
+};
 
   // User info
   const userPhotoURL = firebaseUser?.photoURL || "/images/demo-user.png";
@@ -239,24 +271,19 @@ export default function dashboard() {
         {dropdownVisible && (
           <div
             id="dropdownAvatar"
-            className="absolute top-full mt-3 right-0 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-zinc-200 dark:divide-gray-600 overflow-visible"
+            className="absolute top-full mt-3 right-0 z-10 divide-y rounded-lg shadow w-44 bg-zinc-200 divide-gray-600 overflow-visible"
           >
             <div className="px-4 py-3 text-sm text-gray-900 dark:text-black font-semibold">
               <p>{userUserName}</p>
             </div>
-            <ul
-              className="py-2 text-sm text-gray-700 dark:text-gray-800"
-              aria-labelledby="dropdownUserAvatarButton"
-            >
-              <li>
-                <a
-                  href="/settings"
-                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                >
-                  Delete Account
-                </a>
-              </li>
-            </ul>
+            <div className="py-2">
+              <button
+                onClick={deleteAccount}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-800 dark:hover:text-white"
+              >
+                Delete Account
+              </button>
+            </div>
             <div className="py-2">
               <button
                 onClick={handleSignOut}
@@ -270,13 +297,20 @@ export default function dashboard() {
       </div>
     </div>
       <OverlayForm isVisible={isFormVisible} onClose={closeForm} />
-      <div className="flex justify-evenly flex-col md:flex-row gap-3">
-        <Comp1 />
-        <Comp2 />
-      </div>
+      {user ? (
+        <div className="flex justify-evenly flex-col md:flex-row gap-3">
+          <Comp1 />
+          <Comp2 />
+        </div>
+      ):(
+        <div className="flex justify-evenly flex-col md:flex-row gap-3">
+          <p className="font-semibold text-stone-800">No valid User.</p>
+        </div>
+      )}
+      
       <div className="pb-10">
         <p className="font-bold m-2 mt-4 text-pretty text-2xl">All Passwords.</p>
-        {user.passwords != null && user.passwords.length === 0 ? (
+        {user && user.passwords != null && user.passwords.length === 0 ? (
           <div>
             <p className="pl-2 text-lg">You have no saved passwords.</p>
           </div>
@@ -300,7 +334,7 @@ export default function dashboard() {
               </tr>
             </thead>
             <tbody>
-            {user.passwords.map((value, index) => (
+            {user && user.passwords.map((value, index) => (
                 <tr
                   key={index}
                   className="bg-white border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-200"
@@ -312,50 +346,76 @@ export default function dashboard() {
                     {value.website}
                   </th>
                   <td className="px-6 py-4">
-                    <div className="flex justify-between space-x-2">
-                      <span>{value.username}</span>
-                      <div className="flex justify-start space-x-2">
-                        <button>
-                          <FontAwesomeIcon icon={faPen} className="text-slate-900 h-4 w-4" />
+                    {editIndex === index && editField === 'username' ? (
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          name="username"
+                          value={tempValues.username}
+                          onChange={handleChange}
+                          className="border rounded p-1"
+                        />
+                        <button onClick={() => saveEdit(index)}>
+                          <FontAwesomeIcon icon={faSave} className="text-green-600 h-5 w-5 ml-2" />
                         </button>
-                        <button>
-                          <FontAwesomeIcon icon={faClipboard} onClick={() => {copyText(index, value.username)}} className="text-slate-900 h-4 w-4" />
+                        <button onClick={() => { setEditIndex(null); setEditField(null); }}>
+                          <FontAwesomeIcon icon={faTimes} className="text-red-700 h-6 w-5 ml-2" />
                         </button>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex justify-between space-x-2">
+                        <span>{value.username}</span>
+                        <div className="flex justify-start space-x-2">
+                          <button onClick={() => startEditing(index, 'username')}>
+                            <FontAwesomeIcon icon={faPen} className="text-slate-900 h-4 w-4" />
+                          </button>
+                          <button onClick={() => copyText(index, value.username)}>
+                            <FontAwesomeIcon icon={faClipboard} className="text-slate-900 h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 flex gap-2">
                     {editIndex === index && editField === 'password' ? (
+                      <div className="flex items-center">
                         <input
-                          type="password"
+                          type="text"
                           name="password"
                           value={tempValues.password}
                           onChange={handleChange}
                           className="border rounded p-1"
                         />
+                        <button onClick={() => saveEdit(index)}>
+                          <FontAwesomeIcon icon={faSave} className="text-green-600 h-5 w-5 ml-2" />
+                        </button>
+                        <button onClick={() => { setEditIndex(null); setEditField(null); }}>
+                          <FontAwesomeIcon icon={faTimes} className="text-red-700 h-6 w-5 ml-2" />
+                        </button>
+                      </div>
                     ) : (
                       <>
-                          {visiblePasswordIndex === index ? (
-                            decryptedPasswords[index]
-                          ) : (
-                            <input type="password" value={value.password} readOnly className="border rounded p-1" />
-                          )}
-                        </>
+                        {visiblePasswordIndex === index ? (
+                          decryptedPasswords[index]
+                        ) : (
+                          <input type="password" value={value.password} readOnly className="border rounded p-1" />
+                        )}
+                        <button onClick={() => togglePasswordVisibility(index, value.password)}>
+                          <FontAwesomeIcon icon={faEye} className="text-slate-900 h-4 w-4"/>
+                        </button>
+                        <button onClick={() => startEditing(index, 'password')}>
+                          <FontAwesomeIcon icon={faPen} className="text-slate-900 h-4 w-4" />
+                        </button>
+                        <button onClick={() => copyPass(index, value.password)}>
+                          <FontAwesomeIcon icon={faClipboard} className="text-slate-900 h-4 w-4" />
+                        </button>
+                      </>
                     )}
-                    <button onClick={() => togglePasswordVisibility(index, value.password)}>
-                      <FontAwesomeIcon icon={faEye} className="text-slate-900 h-4 w-4"/>
-                    </button>
-                    <button>
-                      <FontAwesomeIcon icon={faPen} className="text-slate-900 h-4 w-4" />
-                    </button>
-                    <button onClick={() => {copyPass(index, value.password)}}>
-                      <FontAwesomeIcon icon={faClipboard} className="text-slate-900 h-4 w-4" />
-                    </button>
                   </td>
                   <td className="px-3 py-4 space-x-2 text-right lg:px-6 lg:space-x-4">
                     <button
                       onClick={ () => openDialog(value.website) }
-                      className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                      className="font-medium text-blue-600 dark:text-blue-500 hover:underline md:pr-4"
                     >
                       Delete
                     </button>
