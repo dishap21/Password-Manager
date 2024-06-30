@@ -19,11 +19,10 @@ export async function POST(request) {
             user.passwords.push({website, username: uName, password: hashedPassword});
             await user.save();
         }else{
-            console.log("user not found");
+            return NextResponse.json({message: 'User not found.'}, { status: 500})
         }
         return NextResponse.json({message: 'password save successful'}, { status: 200})
     }catch(error){
-        console.log(error);
-        return NextResponse.json({message: 'Error saving password.'}, {status: 500})
+        return NextResponse.json({message: 'Error saving password.', error: error.message}, {status: 500})
     }
 }

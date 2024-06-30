@@ -14,7 +14,6 @@ export async function PUT(request){
         const user = await User.findOne({_id: uid});
         if(user){
             const passwordIndex = user.passwords.findIndex(p => p._id.toString() === id);
-            console.log(passwordIndex);
             if(passwordIndex != -1){
                 const secretKey = process.env.SECRET_KEY;
                 const encryptedPassword = encryptPassword(value, secretKey);

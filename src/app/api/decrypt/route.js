@@ -7,7 +7,6 @@ export async function POST(request) {
         const decryptedPassword = decryptPassword(password, secretKey);
         return new Response(JSON.stringify({ decryptedPassword }), { status: 200 });
     } catch (err) {
-        console.log(err.message);
         return new Response(JSON.stringify({ error: err.message }), { status: 500 });
     }
 }
