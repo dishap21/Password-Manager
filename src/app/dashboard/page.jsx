@@ -302,7 +302,7 @@ export default function dashboard() {
     };
 
     fetchPredictions();
-  }, [user.passwords]);
+  }, [user]); 
 
   return (
     <div className="container mx-auto">

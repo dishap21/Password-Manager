@@ -2,13 +2,12 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB2ruQDEiUpEtTlRURjt8Ly8zkGFajvZWA",
-  authDomain: "passguard-3e034.firebaseapp.com",
-  projectId: "passguard-3e034",
-  storageBucket: "passguard-3e034.appspot.com",
-  messagingSenderId: "891475438594",
-  appId: "1:891475438594:web:d26f78ce34e3b483a3cb1b",
-  measurementId: "G-6SSCDFR74Z"
+  apiKey: process.env.NEXT_PUBLIC_FB_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FB_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FB_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FB_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FB_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FB_APP_ID,
 };
 
 // Initialize Firebase
